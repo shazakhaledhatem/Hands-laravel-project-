@@ -16,12 +16,12 @@ return new class extends Migration
         Schema::create('healths', function (Blueprint $table) {
           $table->id();
      $table->text('typeofdisease');
-     $table->boolean('operation')->default(false);
-     $table->boolean('doctorcheck')->default(false);
-     $table->boolean('medicine')->default(false);
-     $table->boolean('medicaldevice')->default(false);
-     $table->text('typeofdevice');
-     $table->boolean('milkanddiaper')->default(false);
+     $table->boolean('operation')->default(false)->nullable();
+     $table->boolean('doctorcheck')->default(false)->nullable();
+     $table->boolean('medicine')->default(false)->nullable();
+     $table->boolean('medicaldevice')->default(false)->nullable();
+     $table->text('typeofdevice')->nullable();
+     $table->boolean('milkanddiaper')->default(false)->nullable();
      $table->timestamps();
         });
     }

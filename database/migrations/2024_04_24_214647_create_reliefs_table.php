@@ -15,12 +15,12 @@ return new class extends Migration
     {
         Schema::create('reliefs', function (Blueprint $table) {
           $table->id();
-         $table->boolean('home')->default(false);
-         $table->boolean('housefurniture')->default(false);
-         $table->boolean('food')->default(false);
-         $table->boolean('clothes')->default(false);
-         $table->boolean('money')->default(false);
-         $table->boolean('psychologicalaid')->default(false);
+         $table->boolean('home')->default(false)->nullable();
+         $table->boolean('housefurniture')->default(false)->nullable();
+         $table->boolean('food')->default(false)->nullable();
+         $table->boolean('clothes')->default(false)->nullable();
+         $table->boolean('money')->default(false)->nullable();
+         $table->boolean('psychologicalaid')->default(false)->nullable();
          $table->timestamps();
         });
     }

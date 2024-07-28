@@ -18,8 +18,8 @@ return new class extends Migration
     $table->unsignedBigInteger('beneficiaries_id');
     $table->unsignedBigInteger('healths_id');
     $table->unsignedBigInteger('charities_id')->nullable();
-    $table->enum('status', ['pending', 'approved', 'rejected', 'in_process', 'completed'])->default('pending');
-    $table->boolean('active')->default(false);
+    $table->enum('status', ['pending', 'approved', 'rejected', 'transformed', 'completed'])->default('pending')->nullable();
+    $table->boolean('active')->default(false)->nullable();
     $table->timestamps();
 
     $table->foreign('beneficiaries_id')->references('id')->on('beneficiaries')->onDelete('cascade');

@@ -1,7 +1,6 @@
 <?php
 
 return [
-
     /*
     |--------------------------------------------------------------------------
     | Authentication Defaults
@@ -12,7 +11,6 @@ return [
     | as required, but they're a perfect start for most applications.
     |
     */
-
     'defaults' => [
         'guard' => 'web',
         'passwords' => 'users',
@@ -34,18 +32,25 @@ return [
     | Supported: "session"
     |
     */
-
     'guards' => [
-      'web' => [
-       'driver' => 'session',
-       'provider' => 'users',
-   ],
-    'api' => [
-        'driver' => 'sanctum',  // Or 'token' if using a different system
-        'provider' => 'users',
-        'hash' => false,
+        'web' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
+        'api' => [
+            'driver' => 'sanctum',
+            'provider' => 'users',
+            //'hash' => false,
+        ],
+        'web-charities' => [
+            'driver' => 'session',
+            'provider' => 'charities',
+        ],
+        'api-charities' => [
+            'driver' => 'sanctum',
+            'provider' => 'charities',
+        ],
     ],
-],
 
     /*
     |--------------------------------------------------------------------------
@@ -56,24 +61,18 @@ return [
     | users are actually retrieved out of your database or other storage
     | mechanisms used by this application to persist your user's data.
     |
-    | If you have multiple user tables or models you may configure multiple
-    | sources which represent each model / table. These sources may then
-    | be assigned to any extra authentication guards you have defined.
-    |
     | Supported: "database", "eloquent"
     |
     */
-
     'providers' => [
         'users' => [
             'driver' => 'eloquent',
             'model' => App\Models\User::class,
         ],
-
-        // 'users' => [
-        //     'driver' => 'database',
-        //     'table' => 'users',
-        // ],
+        'charities' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\Charity::class,
+        ],
     ],
 
     /*
@@ -90,10 +89,15 @@ return [
     | they have less time to be guessed. You may change this as needed.
     |
     */
-
     'passwords' => [
         'users' => [
             'provider' => 'users',
+            'table' => 'password_resets',
+            'expire' => 60,
+            'throttle' => 60,
+        ],
+        'charities' => [
+            'provider' => 'charities',
             'table' => 'password_resets',
             'expire' => 60,
             'throttle' => 60,
@@ -110,7 +114,5 @@ return [
     | confirmation screen. By default, the timeout lasts for three hours.
     |
     */
-
     'password_timeout' => 10800,
-
 ];

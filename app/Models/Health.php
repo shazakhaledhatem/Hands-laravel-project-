@@ -18,8 +18,11 @@ class Health extends Model
        'milkanddiaper'
    ];
 
-   public function beneficiaries() {
-        return $this->belongsToMany(Beneficiary::class, 'beneficiaries_healths')
-                    ->withPivot('status', 'active', 'charities_id');
+  public function beneficiaries() {
+        return $this->belongsToMany(Beneficiary::class, 'beneficiary__healths')
+                    ->withPivot('status', 'active', 'charities_id','healths_id');
     }
+
+
+
 }

@@ -7,10 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Beneficiary extends Model
 {
+
     use HasFactory;
     protected $fillable = [
-       'male',
-       'female',
+       'first_name',
+       'last_name',
+       'birth_date',
+       'address',
        'malebreadwinnerforthefamily',
        'femalebreadwinnerforthefamily',
        'Youthwithoutfamily',
@@ -24,10 +27,11 @@ class Beneficiary extends Model
        'phone',
        'Discription'
    ];
-   public function healths() {
-          return $this->belongsToMany(Health::class, 'beneficiaries_healths')
-                      ->withPivot('status', 'active', 'charities_id');
+  public function healths() {
+          return $this->belongsToMany(Health::class, 'beneficiary__healths')
+                      ->withPivot('status', 'active', 'charities_id','healths_id');
       }
+
       public function education() {
              return $this->belongsToMany(Education::class, 'beneficiaries_educations')
                          ->withPivot('status', 'active', 'charities_id');
@@ -46,5 +50,10 @@ class Beneficiary extends Model
    public function user() {
        return $this->belongsTo(User::class, 'user_id');
    }
+
+   // public function cases()
+   //     {
+   //         return $this->hasMany(CaseForm::class, 'beneficiaries_id');
+   //     }
 
 }

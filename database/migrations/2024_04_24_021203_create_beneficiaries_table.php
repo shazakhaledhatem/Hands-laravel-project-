@@ -15,8 +15,11 @@ return new class extends Migration
     {
         Schema::create('beneficiaries', function (Blueprint $table) {
           $table->id();
-              $table->boolean('male')->default(false);
-              $table->boolean('female')->default(false);
+          $table->text('first_name');
+          $table->text('last_name');
+          $table->date('birth_date');
+          $table->text('address');
+
               $table->boolean('malebreadwinnerforthefamily')->default(false);
               $table->boolean('femalebreadwinnerforthefamily')->default(false);
               $table->boolean('Youthwithoutfamily')->default(false);

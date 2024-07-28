@@ -36,6 +36,39 @@ class FeedbackController extends Controller
      */
      public function store(Request $request)
     {
+
+      $token = $request->header('Authorization');
+      if (!$token) {
+          return response()->json([
+              'status' => false,
+              'message' => 'Authorization token not provided.',
+          ], 401);
+      }
+
+      // Remove 'Bearer ' from the token string
+      $token = str_replace('Bearer ', '', $token);
+      $hashedToken = hash('sha256', $token);
+
+      // Retrieve the authenticated user
+      $user = Auth::guard('api')->user();
+
+      // Check if user is authenticated
+      if (!$user) {
+          return response()->json([  'status' => false,'message' => 'Unauthorized'], 401);
+      }
+
+      // Validate that the token matches the latest token
+      if ($user->latest_token !== $hashedToken) {
+          return response()->json([  'status' => false,'message' => 'Unauthorized: Invalid token'], 401);
+      }
+
+      // Check if the token has the required capability
+      if (!$user->tokenCan('API TOKEN')) {
+          return response()->json([  'status' => false,'message' => 'Unauthorized: Token does not have the required capability.'], 403);
+      }
+
+      // Get the user ID
+      $userid = $user->id;
         DB::beginTransaction();
         try {
             $request->validate([
@@ -43,15 +76,16 @@ class FeedbackController extends Controller
             ]);
 
             $feedback = new Feedback();
-            $feedback->users_id = Auth::id(); // assumes user is authenticated
+            $feedback->users_id =   $userid; // assumes user is authenticated
             $feedback->usertext = $request->usertext;
             $feedback->save();
 
             // Assuming you want to return all feedback from the current user
-            $paginatedFeedback = Feedback::where('users_id', Auth::id())->latest()->paginate(10);
+            $paginatedFeedback = Feedback::where('users_id',   $userid)->latest()->paginate(10);
 
             DB::commit();
             return response()->json([
+                'status' => true,
                 'message' => 'You have submitted feedback successfully',
                 'data' => $feedback,
                 'pagination' => $paginatedFeedback
@@ -59,7 +93,7 @@ class FeedbackController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            return response()->json(['message' => 'Error processing your request: ' . $e->getMessage()], 500);
+            return response()->json([  'status' => false,'message' => 'Error processing your request: ' . $e->getMessage()], 500);
         }
     }
 

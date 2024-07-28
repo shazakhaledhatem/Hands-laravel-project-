@@ -16,10 +16,10 @@ return new class extends Migration
         Schema::create('education', function (Blueprint $table) {
           $table->id();
            $table->text('typeofeducation');
-           $table->boolean('clothes')->default(false);
-           $table->boolean('booksandpens')->default(false);
-           $table->boolean('courses')->default(false);
-           $table->boolean('bags')->default(false);
+           $table->boolean('clothes')->default(false)->nullable();
+           $table->boolean('booksandpens')->default(false)->nullable();
+           $table->boolean('courses')->default(false)->nullable();
+           $table->boolean('bags')->default(false)->nullable();
            $table->timestamps();
         });
     }

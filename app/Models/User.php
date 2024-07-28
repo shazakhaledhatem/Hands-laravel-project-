@@ -27,7 +27,19 @@ class User extends Authenticatable
         'password',
 
     ];
-  
+
+
+    // Query scope to search for a user
+    public static function scopeSearch($query, $term)
+    {
+        return $query->where(function($query) use ($term) {
+            $query->where('firstName', 'like', "%{$term}%")
+                  ->orWhere('lastName', 'like', "%{$term}%");
+
+        });
+    }
+
+
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -44,6 +56,7 @@ class User extends Authenticatable
      * @var array<string, string>
      */
     protected $casts = [
+  
         'email_verified_at' => 'datetime',
     ];
 }

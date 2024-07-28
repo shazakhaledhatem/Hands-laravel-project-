@@ -15,10 +15,10 @@ return new class extends Migration
     {
         Schema::create('life_hoods', function (Blueprint $table) {
           $table->id();
-            $table->boolean('learningaprofession')->default(false);
-            $table->boolean('gainmoreexperienceinspecificfield')->default(false);
-            $table->text('typeofworkthatyouwanttogain');
-            $table->boolean('jobapportunity')->default(false);
+            $table->boolean('learningaprofession')->default(false)->nullable();
+            $table->boolean('gainmoreexperienceinspecificfield')->default(false)->nullable();
+            $table->text('typeofworkthatyouwanttogain')->nullable()->nullable();
+            $table->boolean('jobapportunity')->default(false)->nullable();
             $table->timestamps();
         });
     }
