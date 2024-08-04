@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('lastName');
             $table->Text('phone');
             $table->string('address');
-            $table->enum('type', ['user', 'volunteer']);
+            $table->string('type');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
