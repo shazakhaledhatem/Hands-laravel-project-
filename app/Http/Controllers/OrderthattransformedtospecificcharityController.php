@@ -81,6 +81,7 @@ class OrderthattransformedtospecificcharityController extends Controller
      foreach ($foundRecords as $record) {
 
               $record->charities_id = $charityId;
+              $record->status="pending";
               $record->save();
 
       }
