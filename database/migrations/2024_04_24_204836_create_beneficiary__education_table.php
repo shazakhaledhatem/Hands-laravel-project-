@@ -18,7 +18,7 @@ return new class extends Migration
            $table->unsignedBigInteger('beneficiaries_id');
            $table->unsignedBigInteger('education_id');
            $table->unsignedBigInteger('charities_id')->nullable();
-           $table->enum('status', ['pending', 'approved', 'rejected', 'in_process', 'completed'])->default('pending')->nullable();
+           $table->enum('status', ['pending', 'approved', 'rejected', 'transformed', 'completed'])->default('pending')->nullable();
            $table->boolean('active')->default(false)->nullable();
            $table->timestamps();
 
