@@ -11,6 +11,7 @@
         "firebase/php-jwt": "^6.10",
         "fruitcake/laravel-cors": "^2.0.5",
         "guzzlehttp/guzzle": "^7.2",
+        "kreait/laravel-firebase": "^5.9",
         "laravel/framework": "^9.0",
         "laravel/sanctum": "^3.3",
         "laravel/tinker": "^2.7",
