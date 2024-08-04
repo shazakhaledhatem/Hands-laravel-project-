@@ -7,79 +7,29 @@ use Illuminate\Http\Request;
 
 class EmeregencyStatusController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        //
-    }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
+  public function getemergencyactive(Request $request)
+  {
+      // Check if there is any record with active set to true
+      $hasActiveStatus = EmeregencyStatus::where('active', true)->exists();
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
-    }
+      if (!$hasActiveStatus) {
+          return response()->json(['status' => false, 'message' => 'Emergency status is false.'], 200);
+      }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\EmeregencyStatus  $emeregencyStatus
-     * @return \Illuminate\Http\Response
-     */
-    public function show(EmeregencyStatus $emeregencyStatus)
-    {
-        //
-    }
+      // Retrieve the active emergency statuses
+      $emergencyStatuses = EmeregencyStatus::where('active', true)->get();
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\EmeregencyStatus  $emeregencyStatus
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(EmeregencyStatus $emeregencyStatus)
-    {
-        //
-    }
+      return response()->json([
+          'status' => true,
+          'message' => 'Emergency status is true.',
+          'data' => $emergencyStatuses,
+          'pagination' => [],
+      ], 200);
+  }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\EmeregencyStatus  $emeregencyStatus
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, EmeregencyStatus $emeregencyStatus)
-    {
-        //
-    }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\EmeregencyStatus  $emeregencyStatus
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(EmeregencyStatus $emeregencyStatus)
-    {
-        //
-    }
+
+
+
 }

@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Charity;
-use App\Models\caseforms;
+
 use App\Models\Volunteer;
 use App\Models\Effectiveness;
 use App\Models\LocationThatCoveredByCharities;
@@ -38,7 +38,7 @@ use App\Models\caseform_education_mid;
 use App\Models\caseform_relief_mid;
 use App\Models\caseform_lifehood_mid;
 use App\Models\assign_orders_volunteer;
-
+use App\Models\caseforms;
 class CharityController extends Controller
 {
   public function acceptorders($id,Request $request)
@@ -189,198 +189,317 @@ return response()->json([
 
   }
 
+  /////////////////////////////////////completed Orderes
+
+  public function completedorders($id,Request $request)
+  {
+    $token = $request->header('Authorization');
+    if (!$token) {
+        return response()->json([
+            'status' => false,
+            'message' => 'Authorization token not provided.',
+        ], 401);
+    }
+
+    // Remove 'Bearer ' from the token string
+    $token = str_replace('Bearer ', '', $token);
+    $hashedToken = hash('sha256', $token);
+
+    // Retrieve the authenticated user
+    $charity = Auth::guard('api-charities')->user();
+
+    // Check if user is authenticated
+    if (!$charity) {
+        return response()->json([  'status' => false,'message' => 'Unauthorized'], 401);
+    }
+
+    // Validate that the token matches the latest token
+    if ($charity->latest_token !== $hashedToken) {
+        return response()->json([  'status' => false,'message' => 'Unauthorized: Invalid token'], 401);
+    }
+
+    // Check if the token has the required capability
+    if (!$charity->tokenCan('Charity Access Token')) {
+        return response()->json([  'status' => false,'message' => 'Unauthorized: Token does not have the required capability.'], 403);
+    }
+
+    // Get the user ID
+    $charityid = $charity->id;
+
+    $tables = ['beneficiary__healths', 'beneficiary__education', 'beneficiary__reliefs', 'beneficiary__lifehoods'];
+
+    $data = null;
+
+  foreach ($tables as $table) {
+      $record = DB::table($table)->where('beneficiaries_id', $id)->first();
+      if ($record) {
+          $data = $record;
+          break;
+      }
+  }
+
+  if ($data) {
+      $data = (array) $data; // Convert stdClass to array
+      $data['status'] = "completed";
+        $data['charities_id']=$charityid;
+      DB::table($table)->where('beneficiaries_id', $id)->update(['charities_id'=>$charityid,
+        'status' => 'completed']);
+
+      // Dump and die to check the updated data
+
+  } else {
+      dd('ID does not exist in any of the tables.');
+  }
+return response()->json([
+'status' => true,
+'message' => 'charity completed the order',
+'data'=>$data ,
+
+'pagination' => [
+    'current_page' => 1,
+    'total_pages' => 1,
+    'total_items' =>1,
+    'items_per_page' =>1,
+
+],
+],200);
+
+  }
+  /////////////////////////////////////////////transformed order to case forms
+
+  public function transformedorderstocaseform($id,Request $request)
+  {
+    $token = $request->header('Authorization');
+    if (!$token) {
+        return response()->json([
+            'status' => false,
+            'message' => 'Authorization token not provided.',
+        ], 401);
+    }
+
+    // Remove 'Bearer ' from the token string
+    $token = str_replace('Bearer ', '', $token);
+    $hashedToken = hash('sha256', $token);
+
+    // Retrieve the authenticated user
+    $charity = Auth::guard('api-charities')->user();
+
+    // Check if user is authenticated
+    if (!$charity) {
+        return response()->json([  'status' => false,'message' => 'Unauthorized'], 401);
+    }
+
+    // Validate that the token matches the latest token
+    if ($charity->latest_token !== $hashedToken) {
+        return response()->json([  'status' => false,'message' => 'Unauthorized: Invalid token'], 401);
+    }
+
+    // Check if the token has the required capability
+    if (!$charity->tokenCan('Charity Access Token')) {
+        return response()->json([  'status' => false,'message' => 'Unauthorized: Token does not have the required capability.'], 403);
+    }
+
+    // Get the user ID
+    $charityid = $charity->id;
+
+    $tables = ['beneficiary__healths', 'beneficiary__education', 'beneficiary__reliefs', 'beneficiary__lifehoods'];
+
+    $data = null;
+
+  foreach ($tables as $table) {
+      $record = DB::table($table)->where('beneficiaries_id', $id)->first();
+      if ($record) {
+          $data = $record;
+          break;
+      }
+  }
+
+  if ($data) {
+      $data = (array) $data; // Convert stdClass to array
+      $data['status'] = "transformed";
+        $data['charities_id']=$charityid;
+      DB::table($table)->where('beneficiaries_id', $id)->update(['charities_id'=>$charityid,
+        'status' => 'transformed']);
+
+      // Dump and die to check the updated data
+
+  } else {
+      dd('ID does not exist in any of the tables.');
+  }
+return response()->json([
+'status' => true,
+'message' => 'charity transformed the order to complete case form for it.',
+'data'=>$data ,
+
+'pagination' => [
+    'current_page' => 1,
+    'total_pages' => 1,
+    'total_items' =>1,
+    'items_per_page' =>1,
+
+],
+],200);
+
+  }
+  ////////////////////////////////////////////////
+
+
 
 //هون عم اعرض كل الطلبات
-    public function indexorderspending(Request $request)
-    {
-      $token = $request->header('Authorization');
-      if (!$token) {
-          return response()->json([
-              'status' => false,
-              'message' => 'Authorization token not provided.',
-          ], 401);
-      }
+public function indexorderspending(Request $request)
+{
+  $token = $request->header('Authorization');
+  if (!$token) {
+      return response()->json([
+          'status' => false,
+          'message' => 'Authorization token not provided.',
+      ], 401);
+  }
 
-      // Remove 'Bearer ' from the token string
-      $token = str_replace('Bearer ', '', $token);
-      $hashedToken = hash('sha256', $token);
+  // Remove 'Bearer ' from the token string
+  $token = str_replace('Bearer ', '', $token);
+  $hashedToken = hash('sha256', $token);
 
-      // Retrieve the authenticated user
-      $charity = Auth::guard('api-charities')->user();
+  // Retrieve the authenticated user
+  $charity = Auth::guard('api-charities')->user();
 
-      // Check if user is authenticated
-      if (!$charity) {
-          return response()->json([  'status' => false,'message' => 'Unauthorized'], 401);
-      }
+  // Check if user is authenticated
+  if (!$charity) {
+      return response()->json([  'status' => false,'message' => 'Unauthorized'], 401);
+  }
 
-      // Validate that the token matches the latest token
-      if ($charity->latest_token !== $hashedToken) {
-          return response()->json([  'status' => false,'message' => 'Unauthorized: Invalid token'], 401);
-      }
+  // Validate that the token matches the latest token
+  if ($charity->latest_token !== $hashedToken) {
+      return response()->json([  'status' => false,'message' => 'Unauthorized: Invalid token'], 401);
+  }
 
-      // Check if the token has the required capability
-      if (!$charity->tokenCan('Charity Access Token')) {
-          return response()->json([  'status' => false,'message' => 'Unauthorized: Token does not have the required capability.'], 403);
-      }
+  // Check if the token has the required capability
+  if (!$charity->tokenCan('Charity Access Token')) {
+      return response()->json([  'status' => false,'message' => 'Unauthorized: Token does not have the required capability.'], 403);
+  }
 
+  $charityId = $charity->id;
 
-$charityId= $charity->id;
-
-      $beneficiary_health = DB::table('beneficiary__healths')
-        ->where('charities_id', $charityId)
-      //  ->where('status', 'pending')
-        ->get();
-  // Load beneficiaries
+  // Fetch beneficiary health data
+  $beneficiary_health = DB::table('beneficiary__healths')
+      ->where('charities_id', $charityId)
+      ->where('status', '!=', 'rejected')
+      ->get();
   $beneficiaryIds = $beneficiary_health->pluck('beneficiaries_id')->unique()->toArray();
   $beneficiaries = DB::table('beneficiaries')->whereIn('id', $beneficiaryIds)->get()->keyBy('id');
   $beneficiaryUserIds = $beneficiaries->pluck('users_id')->unique()->toArray();
-
-  // Fetch users by their IDs, assuming 'User' is your User model
   $users = User::whereIn('id', $beneficiaryUserIds)->get();
-
-  // Initialize variables to avoid undefined variable errors if no users are found
   $firstName = '';
   $lastName = '';
-
-  // Iterate through each user to get names
   foreach ($users as $user) {
-      $firstName = $user->firstName; // assuming 'firstName' is the attribute in your User model
-      $lastName = $user->lastName;   // assuming 'lastName' is the attribute in your User model
+      $firstName = $user->firstName;
+      $lastName = $user->lastName;
   }
-
-  // Concatenate first name and last name with a space in between
   $fullName = $firstName . ' ' . $lastName;
-
-  // Load health
   $healthIds = $beneficiary_health->pluck('healths_id')->unique()->toArray();
   $health = DB::table('healths')->whereIn('id', $healthIds)->get()->keyBy('id');
-
-  // Merge results
   $beneficiary_health = $beneficiary_health->map(function ($item) use ($beneficiaries, $health) {
       $item->beneficiaries = $beneficiaries[$item->beneficiaries_id] ?? null;
       $item->health = $health[$item->healths_id] ?? null;
       return $item;
   });
 
-///////////////////////////////////////////////////////////////
-$beneficiary_education = DB::table('beneficiary__education')
-    ->where('charities_id', $charityId)
-  //  ->where('status', 'pending')
-    ->get();
+  // Fetch beneficiary education data
+  $beneficiary_education = DB::table('beneficiary__education')
+      ->where('charities_id', $charityId)
+      ->where('status', '!=', 'rejected')
+      ->get();
+  $beneficiaryIds = $beneficiary_education->pluck('beneficiaries_id')->unique()->toArray();
+  $beneficiaries = DB::table('beneficiaries')->whereIn('id', $beneficiaryIds)->get()->keyBy('id');
+  $educationIds = $beneficiary_education->pluck('education_id')->unique()->toArray();
+  $education = DB::table('education')->whereIn('id', $educationIds)->get()->keyBy('id');
+  $beneficiary_education = $beneficiary_education->map(function ($item) use ($beneficiaries, $education) {
+      $item->beneficiaries = $beneficiaries[$item->beneficiaries_id] ?? null;
+      $item->education = $education[$item->education_id] ?? null;
+      return $item;
+  });
 
-// Load beneficiaries
-$beneficiaryIds = $beneficiary_education->pluck('beneficiaries_id')->unique()->toArray();
-$beneficiaries = DB::table('beneficiaries')->whereIn('id', $beneficiaryIds)->get()->keyBy('id');
+  // Fetch beneficiary lifehood data
+  $beneficiary_lifehood = DB::table('beneficiary__lifehoods')
+      ->where('charities_id', $charityId)
+      ->where('status', '!=', 'rejected')
+      ->get();
+  $beneficiaryIds = $beneficiary_lifehood->pluck('beneficiaries_id')->unique()->toArray();
+  $beneficiaries = DB::table('beneficiaries')->whereIn('id', $beneficiaryIds)->get()->keyBy('id');
+  $lifehoodIds = $beneficiary_lifehood->pluck('lifehoods_id')->unique()->toArray();
+  $lifehood = DB::table('life_hoods')->whereIn('id', $lifehoodIds)->get()->keyBy('id');
+  $beneficiary_lifehood = $beneficiary_lifehood->map(function ($item) use ($beneficiaries, $lifehood) {
+      $item->beneficiaries = $beneficiaries[$item->beneficiaries_id] ?? null;
+      $item->lifehood = $lifehood[$item->lifehoods_id] ?? null;
+      return $item;
+  });
 
-// Load health
-$educationIds = $beneficiary_education->pluck('education_id')->unique()->toArray();
-$education = DB::table('education')->whereIn('id', $educationIds)->get()->keyBy('id');
+  // Fetch beneficiary relief data
+  $beneficiary_relief = DB::table('beneficiary__reliefs')
+      ->where('charities_id', $charityId)
+      ->where('status', '!=', 'rejected')
+      ->get();
+  $beneficiaryIds = $beneficiary_relief->pluck('beneficiaries_id')->unique()->toArray();
+  $beneficiaries = DB::table('beneficiaries')->whereIn('id', $beneficiaryIds)->get()->keyBy('id');
+  $reliefIds = $beneficiary_relief->pluck('reliefs_id')->unique()->toArray();
+  $relief = DB::table('reliefs')->whereIn('id', $reliefIds)->get()->keyBy('id');
+  $beneficiary_relief = $beneficiary_relief->map(function ($item) use ($beneficiaries, $relief) {
+      $item->beneficiaries = $beneficiaries[$item->beneficiaries_id] ?? null;
+      $item->relief = $relief[$item->reliefs_id] ?? null;
+      return $item;
+  });
 
-// Merge results
-$beneficiary_education = $beneficiary_education->map(function ($item) use ($beneficiaries, $education) {
-    $item->beneficiaries = $beneficiaries[$item->beneficiaries_id] ?? null;
-    $item->education = $education[$item->education_id] ?? null;
-    return $item;
-});
-/////////////////////////////////////////////////////////////////////////////
-$beneficiary_lifehood = DB::table('beneficiary__lifehoods')
-    ->where('charities_id', $charityId)
-  //  ->where('status', 'pending')
-    ->get();
-
-// Load beneficiaries
-$beneficiaryIds = $beneficiary_lifehood->pluck('beneficiaries_id')->unique()->toArray();
-$beneficiaries = DB::table('beneficiaries')->whereIn('id', $beneficiaryIds)->get()->keyBy('id');
-
-// Load health
-$lifehoodIds = $beneficiary_lifehood->pluck('lifehoods_id')->unique()->toArray();
-$lifehood = DB::table('life_hoods')->whereIn('id', $lifehoodIds)->get()->keyBy('id');
-
-// Merge results
-$beneficiary_lifehood = $beneficiary_lifehood->map(function ($item) use ($beneficiaries, $lifehood) {
-    $item->beneficiaries = $beneficiaries[$item->beneficiaries_id] ?? null;
-    $item->lifehood = $lifehood[$item->lifehoods_id] ?? null;
-    return $item;
-});
-//////////////////////////////////////////////////////////////////////////
-$beneficiary_relief = DB::table('beneficiary__reliefs')
-    ->where('charities_id', $charityId)
-  //  ->where('status', 'pending')
-    ->get();
-
-// Load beneficiaries
-$beneficiaryIds = $beneficiary_relief->pluck('beneficiaries_id')->unique()->toArray();
-$beneficiaries = DB::table('beneficiaries')->whereIn('id', $beneficiaryIds)->get()->keyBy('id');
-
-// Load health
-$reliefIds = $beneficiary_relief->pluck('reliefs_id')->unique()->toArray();
-$relief = DB::table('reliefs')->whereIn('id', $reliefIds)->get()->keyBy('id');
-
-// Merge results
-   $beneficiary_relief = $beneficiary_relief->map(function ($item) use ($beneficiaries, $relief) {
-    $item->beneficiaries = $beneficiaries[$item->beneficiaries_id] ?? null;
-    $item->relief = $relief[$item->reliefs_id] ?? null;
-    return $item;
-});
-///////////////////////////////////////////////////////////////////////
-  // Convert the collection to an array and return as JSON
-  /*return response()->json([
-      'beneficiary_health' => $beneficiary_health->toArray(),
-      'beneficiary_education' => $beneficiary_education->toArray(),
-      'beneficiary_lifehood'=>$beneficiary_lifehood->toArray(),
-      'beneficiary_relief'=>$beneficiary_relief->toArray()
-  ]);*/
-
+  // Pagination
   $perPage = 10; // Assuming 10 items per page, adjust as needed
+  $page = $request->get('page', 1); // Get the current page from the request, default to 1
+  $offset = ($page - 1) * $perPage;
 
-$page = request()->get('page', 1); // Get the current page from the request, default to 1
+  $beneficiary_health_paginated = $beneficiary_health->slice($offset, $perPage)->values();
+  $beneficiary_education_paginated = $beneficiary_education->slice($offset, $perPage)->values();
+  $beneficiary_lifehood_paginated = $beneficiary_lifehood->slice($offset, $perPage)->values();
+  $beneficiary_relief_paginated = $beneficiary_relief->slice($offset, $perPage)->values();
 
-$offset = ($page - 1) * $perPage;
+  // Fetch emergency orders
+  $order = Orderesfromemergencystatus::where('charities_id', $charityId)->paginate($perPage);
 
-$beneficiary_health_paginated = $beneficiary_health->slice($offset, $perPage);
-$beneficiary_education_paginated = $beneficiary_education->slice($offset, $perPage);
-$beneficiary_lifehood_paginated = $beneficiary_lifehood->slice($offset, $perPage);
-$beneficiary_relief_paginated = $beneficiary_relief->slice($offset, $perPage);
-// Fetch emergency orders
-$order = Orderesfromemergencystatus::where('charities_id', $charityId)->paginate($perPage);
-return response()->json([
-    'status' => true,
-    'message' => 'Get charity\'s orders',
-    'data' => [
-      'emergency_orders'=>$order,
-        'beneficiary_health' => $beneficiary_health_paginated->toArray(),
-        'beneficiary_education' => $beneficiary_education_paginated->toArray(),
-        'beneficiary_lifehood' => $beneficiary_lifehood_paginated->toArray(),
-        'beneficiary_relief' => $beneficiary_relief_paginated->toArray(),
-        'username'=>$fullName,
-    ],
-    'pagination' => [
-      'beneficiary_health'=>[
-        'current_page' => $page,
-        'total_pages' => ceil($beneficiary_health->count() / $perPage),
-        'total_items' => $beneficiary_health->count(),
-        'items_per_page' => $perPage],
-        'beneficiary_education'=>[
-          'current_page' => $page,
-          'total_pages' => ceil($beneficiary_education->count() / $perPage),
-          'total_items' => $beneficiary_education->count(),
-          'items_per_page' => $perPage],
-          'beneficiary_lifehood'=>[
-            'current_page' => $page,
-            'total_pages' => ceil($beneficiary_lifehood->count() / $perPage),
-            'total_items' => $beneficiary_lifehood->count(),
-            'items_per_page' => $perPage],
-            'beneficiary_relief'=>[
+  return response()->json([
+      'status' => true,
+      'message' => 'Get charity\'s orders',
+      'data' => [
+          'emergency_orders' => $order,
+          'beneficiary_health' => $beneficiary_health_paginated->toArray(),
+          'beneficiary_education' => $beneficiary_education_paginated->toArray(),
+          'beneficiary_lifehood' => $beneficiary_lifehood_paginated->toArray(),
+          'beneficiary_relief' => $beneficiary_relief_paginated->toArray(),
+        //  'username' => $fullName,
+      ],
+      'pagination' => [
+          'beneficiary_health' => [
+              'current_page' => $page,
+              'total_pages' => ceil($beneficiary_health->count() / $perPage),
+              'total_items' => $beneficiary_health->count(),
+              'items_per_page' => $perPage
+          ],
+          'beneficiary_education' => [
+              'current_page' => $page,
+              'total_pages' => ceil($beneficiary_education->count() / $perPage),
+              'total_items' => $beneficiary_education->count(),
+              'items_per_page' => $perPage
+          ],
+          'beneficiary_lifehood' => [
+              'current_page' => $page,
+              'total_pages' => ceil($beneficiary_lifehood->count() / $perPage),
+              'total_items' => $beneficiary_lifehood->count(),
+              'items_per_page' => $perPage
+          ],
+          'beneficiary_relief' => [
               'current_page' => $page,
               'total_pages' => ceil($beneficiary_relief->count() / $perPage),
               'total_items' => $beneficiary_relief->count(),
-              'items_per_page' => $perPage],
-
-    ],
-], 200);
-
-
-
+              'items_per_page' => $perPage
+          ],
+      ],
+  ], 200);
 }
 
 public function indexordersaccepted(Request $request)
@@ -619,6 +738,7 @@ return response()->json([
   $beneficiary_health = DB::table('beneficiary__healths')
       ->where('charities_id', null)
       ->where('status', "pending")
+      ->where('status', '!=', 'rejected')
       ->get();
 
   // Load beneficiaries
@@ -724,6 +844,7 @@ return response()->json([
   $beneficiary_reliefs = DB::table('beneficiary__reliefs')
       ->where('charities_id', null)
       ->where('status', "pending")
+      ->where('status', '!=', 'rejected')
       ->get();
 
   // Load beneficiaries
@@ -818,6 +939,7 @@ return response()->json([
     $beneficiary_education = DB::table('beneficiary__education')
       ->where('charities_id', null)
       ->where('status', "pending")
+      ->where('status', '!=', 'rejected')
       ->get();
 
     // Load beneficiaries
@@ -911,6 +1033,7 @@ return response()->json([
     $beneficiary_lifehood = DB::table('beneficiary__lifehoods')
       ->where('charities_id', null)
       ->where('status', "pending")
+      ->where('status', '!=', 'rejected')
       ->get();
 
     // Load beneficiaries
@@ -969,61 +1092,153 @@ return response()->json([
 
     ////////////////////////////////////////////////
     public function showDetailsOrder(Request $request, $id) {
-      DB::beginTransaction();
-      try {
-          // Fetch the beneficiary with the corresponding details
-          $beneficiary = Beneficiary::findOrFail($id);
-          $beneficiaryId = $beneficiary->id;
-          $beneficiaryUserIds = $beneficiary->pluck('users_id')->unique()->toArray();
+    $token = $request->header('Authorization');
+    if (!$token) {
+        return response()->json([
+            'status' => false,
+            'message' => 'Authorization token not provided.',
+        ], 401);
+    }
 
-          // Fetch users by their IDs, assuming 'User' is your User model
-          $users = User::whereIn('id', $beneficiaryUserIds)->get();
+    // Remove 'Bearer ' from the token string
+    $token = str_replace('Bearer ', '', $token);
+    $hashedToken = hash('sha256', $token);
 
-          // Initialize variables to avoid undefined variable errors if no users are found
-          $firstName = '';
-          $lastName = '';
+    // Retrieve the authenticated user
+    $charity = Auth::guard('api-charities')->user();
 
-          // Iterate through each user to get names
-          foreach ($users as $user) {
-              $firstName = $user->firstName; // assuming 'firstName' is the attribute in your User model
-              $lastName = $user->lastName;   // assuming 'lastName' is the attribute in your User model
-          }
+    // Check if user is authenticated
+    if (!$charity) {
+        return response()->json([ 'status' => false, 'message' => 'Unauthorized'], 401);
+    }
 
-          // Concatenate first name and last name with a space in between
-          $fullName = $firstName . ' ' . $lastName;
+    // Validate that the token matches the latest token
+    if ($charity->latest_token !== $hashedToken) {
+        return response()->json([ 'status' => false, 'message' => 'Unauthorized: Invalid token'], 401);
+    }
 
-          // Assume default page size or get from request
-          $pageSize = $request->input('page_size', 10);
+    // Check if the token has the required capability
+    if (!$charity->tokenCan('Charity Access Token')) {
+        return response()->json([ 'status' => false, 'message' => 'Unauthorized: Token does not have the required capability.'], 403);
+    }
 
-          $healths = Beneficiary_Health::where('beneficiaries_id', $beneficiaryId)->with('healths')
-                       ->paginate($pageSize); // Now paginating health records
+    $charityId = $charity->id;
 
-          $educations = Beneficiary_Education::where('beneficiaries_id', $beneficiaryId)->with('education')
-                       ->paginate($pageSize); // Now paginating education records
+    try {
+        // Fetch the beneficiary with the corresponding details
+        $beneficiary = Beneficiary::findOrFail($id);
+        $beneficiaryId = $beneficiary->id;
+        $beneficiaryUserIds = [$beneficiary->users_id]; // Assuming users_id is a single value, not a collection
 
-          $reliefs = Beneficiary_Relief::where('beneficiaries_id', $beneficiaryId)->with('relief')
-                       ->paginate($pageSize); // Now paginating relief records
+        // Fetch users by their IDs, assuming 'User' is your User model
+        $users = User::whereIn('id', $beneficiaryUserIds)->get();
 
-          $lifehoods = Beneficiary_Lifehood::where('beneficiaries_id', $beneficiaryId)->with('life_hoods')
-                       ->paginate($pageSize); // Now paginating lifehood records
+        // Initialize variables to avoid undefined variable errors if no users are found
+        $fullName = '';
 
-          return response()->json([
-              'message' => 'Details fetched successfully for beneficiary ID: ' . $beneficiaryId,
-              'data' => [
-                  'beneficiary' => $beneficiary,
-                  'healths' => $healths,
-                  'educations' => $educations,
-                  'reliefs' => $reliefs,
-                  'lifehoods' => $lifehoods,
-                  'username'=>$fullName,
-              ]
-          ], 200);
-      } catch (\Exception $e) {
-          DB::rollBack();
-          return response()->json([  'status' => false,'message' => 'Error processing your request: ' . $e->getMessage()], 500);
-      }
-  }
+        // Iterate through each user to get names
+        foreach ($users as $user) {
+            $fullName = $user->firstName . ' ' . $user->lastName; // assuming 'firstName' and 'lastName' are attributes in your User model
+        }
 
+        // Fetch all records without pagination
+        $healths = Beneficiary_Health::where('beneficiaries_id', $beneficiaryId)->with('healths')->get();
+        $educations = Beneficiary_Education::where('beneficiaries_id', $beneficiaryId)->with('education')->get();
+        $reliefs = Beneficiary_Relief::where('beneficiaries_id', $beneficiaryId)->with('relief')->get();
+        $lifehoods = Beneficiary_Lifehood::where('beneficiaries_id', $beneficiaryId)->with('life_hoods')->get();
+
+        // Initialize caseform variables
+        $caseforms = [];
+        $caseformHealths = [];
+        $caseformEducations = [];
+        $caseformReliefs = [];
+        $caseformLifehoods = [];
+        $caseformMids = [];
+
+        // Check for case form health
+        if ($healths != null) {
+            $assignOrders = assign_orders_volunteer::where('beneficiaries_id', $id)->pluck('id');
+            $caseformHealthMids = caseform_health_mid::whereIn('assign_id', $assignOrders)->get();
+
+            foreach ($caseformHealthMids as $caseformHealthMid) {
+                $caseform = caseforms::where('id', $caseformHealthMid->caseforms_id)->first();
+                $caseformHealth = caseform_health::where('id', $caseformHealthMid->caseformhealths_id)->first();
+                $caseforms[] = $caseform;
+                $caseformHealths[] = $caseformHealth;
+                $caseformMids[] = $caseformHealthMid;
+            }
+        }
+
+        // Check for case form education
+        if ($educations != null) {
+            $assignOrders = assign_orders_volunteer::where('beneficiaries_id', $id)->pluck('id');
+            $caseformEducationMids = caseform_education_mid::whereIn('assign_id', $assignOrders)->get();
+
+            foreach ($caseformEducationMids as $caseformEducationMid) {
+                $caseform = caseforms::where('id', $caseformEducationMid->caseforms_id)->first();
+                $caseformEducation = caseform_education::where('id', $caseformEducationMid->caseformeducations_id)->first();
+                $caseforms[] = $caseform;
+                $caseformEducations[] = $caseformEducation;
+                $caseformMids[] = $caseformEducationMid;
+            }
+        }
+
+        // Check for case form relief
+        if ($reliefs != null) {
+            $assignOrders = assign_orders_volunteer::where('beneficiaries_id', $id)->pluck('id');
+            $caseformReliefMids = caseform_relief_mid::whereIn('assign_id', $assignOrders)->get();
+
+            foreach ($caseformReliefMids as $caseformReliefMid) {
+                $caseform = caseforms::where('id', $caseformReliefMid->caseforms_id)->first();
+                $caseformRelief = caseform_reliefs::where('id', $caseformReliefMid->caseformreliefs_id)->first();
+                $caseforms[] = $caseform;
+                $caseformReliefs[] = $caseformRelief;
+                $caseformMids[] = $caseformReliefMid;
+            }
+        }
+
+        // Check for case form lifehood
+        if ($lifehoods != null) {
+            $assignOrders = assign_orders_volunteer::where('beneficiaries_id', $id)->pluck('id');
+            $caseformLifehoodMids = caseform_lifehood_mid::whereIn('assign_id', $assignOrders)->get();
+
+            foreach ($caseformLifehoodMids as $caseformLifehoodMid) {
+                $caseform = caseforms::where('id', $caseformLifehoodMid->caseforms_id)->first();
+                $caseformLifehood = caseform_lifehoods::where('id', $caseformLifehoodMid->caseformlifehoods_id)->first();
+                $caseforms[] = $caseform;
+                $caseformLifehoods[] = $caseformLifehood;
+                $caseformMids[] = $caseformLifehoodMid;
+            }
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Details fetched successfully for beneficiary ID: ' . $beneficiaryId,
+            'data' => [
+                'beneficiary' => $beneficiary,
+                'healths' => $healths,
+                'educations' => $educations,
+                'reliefs' => $reliefs,
+                'lifehoods' => $lifehoods,
+                'username' => $fullName,
+                'caseforms' => $caseforms,
+                'caseformHealths' => $caseformHealths,
+                'caseformEducations' => $caseformEducations,
+                'caseformReliefs' => $caseformReliefs,
+                'caseformLifehoods' => $caseformLifehoods,
+                'caseformMids' => $caseformMids,
+                'pagination'=>[],
+            ]
+        ], 200);
+
+    } catch (\Exception $e) {
+        return response()->json([ 'status' => false, 'message' => 'Error processing your request: ' . $e->getMessage()], 500);
+    }
+}
+
+
+
+///////////////////////////////////////////////////////////////////
   public function register(Request $request)
   {
       try {

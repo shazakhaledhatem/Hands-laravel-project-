@@ -33,6 +33,7 @@ use App\Http\Controllers\CaseformHealthController;
 use App\Http\Controllers\CaseformEducationController;
 use App\Http\Controllers\CaseformReliefsController;
 use App\Http\Controllers\CaseformLifehoodsController;
+use App\Http\Controllers\EmeregencyStatusController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -151,6 +152,8 @@ Route::post('/charity/searchon orders', [CharityController::class, 'search']);
 
 Route::post('/charity/acceptorders/{id}', [CharityController::class, 'acceptorders']);
 Route::post('/charity/rejectorders/{id}', [CharityController::class, 'rejectorders']);
+Route::post('/charity/completedorders/{id}', [CharityController::class, 'completedorders']);
+Route::post('/charity/transformedorderstocaseform/{id}', [CharityController::class, 'transformedorderstocaseform']);
 
 
 Route::post('/charity/acceptvolunteerorders/{volunterorderid}', [CharityController::class, 'acceptvolunteerorders']);
@@ -199,6 +202,15 @@ Route::post('/deleteImage/{id}', [SliderController::class, 'deleteImage']);
 
 Route::get('/charity/getCaseformsByCharity', [CharityController::class, 'getCaseformsByCharity']);
 
+
+
+
+
+
+
+
+
+Route::get('/getemergencyactive', [EmeregencyStatusController::class, 'getemergencyactive']);
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

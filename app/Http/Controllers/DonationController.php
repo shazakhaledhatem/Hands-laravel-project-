@@ -46,7 +46,7 @@ class DonationController extends Controller
       $donations = Donation::where('charities_id', $charityId)->paginate(10); // Adjust the number '10' to the desired items per page
 
       if ($donations->isEmpty()) {
-          return response()->json(['status' => false, 'message' => 'No donations found for this charity.'], 404);
+          return response()->json(['status' => true, 'message' => 'No donations found for this charity.'], 200);
       }
 
       return response()->json([
@@ -271,7 +271,7 @@ public function getFinancialReportsByUserId(Request $request)
     $donations = Donation::where('userid', $userId)->pluck('id');
 
     if ($donations->isEmpty()) {
-        return response()->json(['status' => false, 'message' => 'No donations found for this user.'], 404);
+        return response()->json(['status' => true, 'message' => 'No donations found for this user.'], 200);
     }
 
     // Get financial reports for the donations
