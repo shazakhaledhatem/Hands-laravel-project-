@@ -34,6 +34,7 @@ use App\Http\Controllers\CaseformEducationController;
 use App\Http\Controllers\CaseformReliefsController;
 use App\Http\Controllers\CaseformLifehoodsController;
 use App\Http\Controllers\EmeregencyStatusController;
+use App\Helpers\NotificationFirebase;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -233,3 +234,30 @@ Route::post('/volunteer/createhealthcaseform/{assignId}', [CaseformHealthControl
 Route::post('/volunteer/createducationCaseform/{assignId}', [CaseformEducationController::class, 'createducationCaseform']);
 Route::post('/volunteer/createreliefCaseform/{assignId}', [CaseformReliefsController::class, 'createreliefCaseform']);
 Route::post('/volunteer/createlifehoodCaseform/{assignId}', [CaseformLifehoodsController::class, 'createlifehoodCaseform']);
+;
+
+Route::post('/send-notification', function (Request $request) {
+    $request->validate([
+        'token' => 'required|string',
+        'title' => 'required|string',
+        'body' => 'required|string',
+    ]);
+
+    $notification = new NotificationFirebase();
+    $response = $notification->send($request->input('token'), $request->input('title'), $request->input('body'));
+
+    return response()->json($response);
+});
+
+Route::post('/send-multicast-notification', function (Request $request) {
+    $request->validate([
+        'tokens' => 'required|array',
+        'title' => 'required|string',
+        'body' => 'required|string',
+    ]);
+
+    $notification = new NotificationFirebase();
+    $response = $notification->sendMulticast($request->input('tokens'), $request->input('title'), $request->input('body'));
+
+    return response()->json(['success' => $response]);
+});

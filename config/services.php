@@ -30,6 +30,6 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
     'firebase' => [
-        'credentials' => storage_path('charity-user-0a2520be9af6.json'),
+        'credentials' => storage_path('json/charity-user-0a2520be9af6.json'),
     ],
 ];
